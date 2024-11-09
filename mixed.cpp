@@ -14,6 +14,11 @@ public:
         this->size = n;
     }
 
+    void print(const string& str, int size) {
+        cout << str;
+        cout << endl;
+    }
+
     string encryption(const string& text, const string& esh, const string& desh, int size) {
         string encr;
         for (int i = 0; i < size; i++) {
@@ -26,7 +31,7 @@ public:
                     break;
                 }
             }
-            if (!b) {
+            if (b == false) {
                 encr += current;
             }
         }
@@ -45,7 +50,7 @@ public:
                     break;
                 }
             }
-            if (!b) {
+            if (b == false) {
                 decr += current;
             }
         }
@@ -53,25 +58,6 @@ public:
     }
 };
 
-
-void program1(string& text) {
-    string esh, desh;
-    MyClass myclass(text, text.length());
-
-    esh.resize(256);
-    for (int i = 0; i < 256; i++) {
-        esh[i] = static_cast<char>(i);
-    }
-
-    desh.resize(256);
-    for (int i = 0; i < 256; i++) {
-        desh[i] = static_cast<char>((i + 3) % 256); 
-    }
-
-    string en = myclass.encryption(text, esh, desh, text.length());
-    cout << "Encrypted with Caesar cipher: " << en << endl;
-    text = en;  
-}
 
 class Encryption {
 private:
@@ -101,7 +87,7 @@ public:
             }
         }
 
-        cout << "Encrypted with transposition cipher:" << endl;
+        cout << "Encrypted string using Row-Column Cipher:" << endl;
         for (int j = 0; j < columns; ++j) {
             for (int i = 0; i < rows; ++i) {
                 cout << newStr[j][i];
@@ -119,7 +105,7 @@ public:
             }
         }
 
-        cout << "Decrypted with transposition cipher:" << endl;
+        cout << "Decrypted string using Row-Column Cipher:" << endl;
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < columns; ++j) {
                 cout << original[i][j];
@@ -130,89 +116,57 @@ public:
     }
 };
 
-void program2(string& text, int SIZE) {
-    int rows = (text.length() + SIZE - 1) / SIZE;
-    vector<vector<char>> str(rows, vector<char>(SIZE, ' '));
+int main() {
+    string text, esh, desh;
+    int shift, SIZE, rows, cols;
+    cout << "Enter text: ";
+    getline(cin, text);
+    
+    MyClass myclass(text, text.length());
+    for (int i = 0; i < 256; ++i) {
+        esh += char(i%256); 
+    }
+    for (int i = 0; i < 256; ++i) {
+        desh += char((i + 3) % 256);  
+    }
 
+    string caesarEncrypted = myclass.encryption(text, esh, desh, text.length());
+    cout << "Caesar Encrypted Text: " << caesarEncrypted << endl;
+
+    cout << "Enter the number of columns for Row-Column Cipher: ";
+    cin >> cols;
+    SIZE = cols;
+    rows = (caesarEncrypted.length() + SIZE - 1) / SIZE; 
+
+    vector<vector<char>> str(rows, vector<char>(SIZE, ' '));
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < SIZE; j++) {
             int index = i * SIZE + j;
-            if (index < text.length()) {
-                str[i][j] = text[index];
+            if (index < caesarEncrypted.length()) {
+                str[i][j] = caesarEncrypted[index];
             }
         }
     }
 
     Encryption encrypt(rows, SIZE);
     encrypt.print(str);
-    vector<vector<char>> encrypted = encrypt.encr(str);
-
-    text.clear();
-    for (int j = 0; j < SIZE; ++j) {
-        for (int i = 0; i < rows; ++i) {
-            if (encrypted[j][i] != ' ')  
-                text += encrypted[j][i];
-        }
-    }
-
-    cout << "Text after Row-Column transposition: " << text << endl;
-}
+    vector<vector<char>> rowColEncrypted = encrypt.encr(str);
+    vector<vector<char>> rowColDecrypted = encrypt.decr(rowColEncrypted);
 
 
-int main() {
-    string text;
-    cout << "Enter the text: ";
-    getline(cin, text);
-
-    program1(text);
-
-    int SIZE;
-    cout << "Enter column size for transposition cipher: ";
-    cin >> SIZE;
-    cin.ignore(); 
-    program2(text, SIZE);
-
-    int rows = (text.length() + SIZE - 1) / SIZE;
-    vector<vector<char>> str(rows, vector<char>(SIZE, ' '));
-
+    string rowColDecryptedText = "";
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < SIZE; j++) {
-            int index = i * SIZE + j;
-            if (index < text.length()) {
-                str[i][j] = text[index];
+            if (rowColDecrypted[i][j] != ' ') {
+                rowColDecryptedText += rowColDecrypted[i][j];
             }
         }
     }
 
-    Encryption encrypt(rows, SIZE);
-    vector<vector<char>> decrypted = encrypt.decr(str);
+    string caesarDecrypted = myclass.decryption(rowColDecryptedText, esh, desh, rowColDecryptedText.length());
+    cout << "Caesar Decrypted Text: " << caesarDecrypted << endl;
 
-    text.clear();
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < SIZE; ++j) {
-            if (decrypted[i][j] != ' ')  
-                text += decrypted[i][j];
-        }
-    }
+    cout << "Final Decrypted Text (Original): " << caesarDecrypted << endl;
 
-    cout << "Text after Row-Column transposition decryption: " << text << endl;
-
- 
-    string esh, desh;
-    MyClass myclass(text, text.length());
-    esh.resize(256);
-    for (int i = 0; i < 256; i++) {
-        esh[i] = static_cast<char>(i);
-    }
-
-    desh.resize(256);
-    for (int i = 0; i < 256; i++) {
-        desh[i] = static_cast<char>((i - 3 + 256) % 256);  
-    }
-
-    string finalDecryptedText = myclass.decryption(text, esh, desh, text.length());
-    cout << "Final decrypted text: " << finalDecryptedText << endl;
-    a b c d 
-    d e f g
     return 0;
 }
